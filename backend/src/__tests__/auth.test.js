@@ -4,9 +4,13 @@
  */
 
 const request = require('supertest');
+const mongoose = require('mongoose');
 const app = require('../index');
 
 describe('Auth Endpoints', () => {
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
   describe('POST /api/auth/register', () => {
     it('should register a new user', async () => {
       const response = await request(app)

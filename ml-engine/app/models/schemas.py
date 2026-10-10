@@ -3,7 +3,7 @@ Pydantic models for request/response schemas
 """
 
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 
 class EmotionScore(BaseModel):
@@ -15,13 +15,21 @@ class EmotionScore(BaseModel):
 class AnalysisRequest(BaseModel):
     """Request model for single text analysis"""
     text: str = Field(..., min_length=1, max_length=100000, description="Text to analyze")
-    
-    class Config:
-        json_schema_extra = {
+
+    @field_validator("text")
+    @classmethod
+    def validate_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Input text cannot be empty or contain only whitespace.")
+        return v
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "text": "I love this product! It exceeded all my expectations."
             }
         }
+    )
 
 
 class BatchAnalysisRequest(BaseModel):
@@ -32,9 +40,19 @@ class BatchAnalysisRequest(BaseModel):
         max_length=100,
         description="List of texts to analyze"
     )
-    
-    class Config:
-        json_schema_extra = {
+
+    @field_validator("texts")
+    @classmethod
+    def validate_texts(cls, v: List[str]) -> List[str]:
+        if not v:
+            raise ValueError("Texts list cannot be empty.")
+        for idx, item in enumerate(v):
+            if not isinstance(item, str) or not item.strip():
+                raise ValueError(f"Text item at index {idx} cannot be empty or contain only whitespace.")
+        return v
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "texts": [
                     "I love this product!",
@@ -43,6 +61,7 @@ class BatchAnalysisRequest(BaseModel):
                 ]
             }
         }
+    )
 
 
 class AnalysisResult(BaseModel):
@@ -54,9 +73,9 @@ class AnalysisResult(BaseModel):
     emotions: List[EmotionScore] = Field(..., description="Emotion scores")
     dominant_emotion: str = Field(..., description="Most prominent emotion")
     summary: Optional[str] = Field(None, description="Comprehensive summary of the content")
-    
-    class Config:
-        json_schema_extra = {
+
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "text": "I love this product!",
                 "sentiment": "positive",
@@ -73,6 +92,7 @@ class AnalysisResult(BaseModel):
                 "dominant_emotion": "joy"
             }
         }
+    )
 
 
 class BatchAnalysisResult(BaseModel):

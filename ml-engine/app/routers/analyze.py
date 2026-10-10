@@ -41,6 +41,12 @@ async def analyze_text(request: Request, body: AnalysisRequest):
         
     except HTTPException:
         raise
+    except ValueError as ve:
+        logger.warning(f"Input validation error: {ve}")
+        raise HTTPException(
+            status_code=422,
+            detail=str(ve)
+        )
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
         raise HTTPException(
@@ -75,6 +81,12 @@ async def analyze_batch(request: Request, body: BatchAnalysisRequest):
         
     except HTTPException:
         raise
+    except ValueError as ve:
+        logger.warning(f"Batch validation error: {ve}")
+        raise HTTPException(
+            status_code=422,
+            detail=str(ve)
+        )
     except Exception as e:
         logger.error(f"Batch analysis failed: {e}")
         raise HTTPException(

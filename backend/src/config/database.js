@@ -6,9 +6,14 @@ const mongoose = require('mongoose');
 const { logger } = require('./logger');
 
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    logger.warn('MONGODB_URI is not set. Database operations will not be available until configured.');
+    return;
+  }
+
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      // Mongoose 8 defaults are good, but we can add options if needed
+      // Mongoose 8 defaults
     });
 
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
@@ -31,7 +36,9 @@ const connectDB = async () => {
 
   } catch (error) {
     logger.error(`MongoDB connection failed: ${error.message}`);
-    process.exit(1);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 };
 

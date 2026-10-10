@@ -200,20 +200,16 @@ function Setup-MLEngine {
             if (Test-Path "venv\Scripts\Activate.ps1") {
                 Write-Success "Virtual environment created"
                 
-                # Activate and install
-                & "venv\Scripts\Activate.ps1"
-                pip install -r requirements.txt
+                # Install using venv pip directly (avoids PowerShell ExecutionPolicy restrictions)
+                & "venv\Scripts\pip.exe" install -r requirements.txt
                 
                 if ($LASTEXITCODE -eq 0) {
                     Write-Success "ML engine dependencies installed"
                 } else {
                     Write-Error-Custom "Failed to install ML engine dependencies"
-                    deactivate
                     Pop-Location
                     exit 1
                 }
-                
-                deactivate
             }
         }
     } else {
